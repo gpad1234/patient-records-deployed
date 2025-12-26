@@ -1,0 +1,101 @@
+version: '3.9'
+
+services:
+  # PostgreSQL Database
+  postgres:
+    image: postgres:16-alpine
+    container_name: patient-records-db
+    environment:
+      POSTGRES_USER: patient_user
+      POSTGRES_PASSWORD: patient_password
+      POSTGRES_DB: patient_records
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U patient_user"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Java MCP Service
+  java-service:
+    build:
+      context: ./services/java-service
+      dockerfile: Dockerfile
+    container_name: patient-records-java-service
+    environment:
+      JAVA_OPTS: "-Xmx512m"
+      SERVICE_NAME: java-service
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_USER: patient_user
+      DB_PASSWORD: patient_password
+      DB_NAME: patient_records
+    ports:
+      - "8080:8080"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Python MCP Service
+  python-service:
+    build:
+      context: ./services/python-service
+      dockerfile: Dockerfile
+    container_name: patient-records-python-service
+    environment:
+      FLASK_ENV: development
+      FLASK_DEBUG: "True"
+      PORT: 5000
+      DATABASE_URL: postgresql://patient_user:patient_password@postgres:5432/patient_records
+      SERVICE_NAME: python-service
+      LOG_LEVEL: INFO
+    ports:
+      - "5000:5000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Node.js API Gateway
+  node-service:
+    build:
+      context: ./services/node-service
+      dockerfile: Dockerfile
+    container_name: patient-records-node-service
+    environment:
+      NODE_ENV: development
+      PORT: 3000
+      JAVA_SERVICE_URL: http://java-service:8080
+      PYTHON_SERVICE_URL: http://python-service:5000
+      LOG_LEVEL: info
+      SERVICE_NAME: node-service
+    ports:
+      - "3000:3000"
+    depends_on:
+      - java-service
+      - python-service
+    healthcheck:
+      test: ["CMD", "node", "-e", "require('http').get('http://localhost:3000/health', (r) => {if (r.statusCode !== 200) throw new Error(r.statusCode)})"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+volumes:
+  postgres_data:
+    driver: local
+
+networks:
+  default:
+    name: patient-records-network

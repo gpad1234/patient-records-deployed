@@ -1,0 +1,80 @@
+# .gitignore for PatientRecords
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Build
+target/
+build/
+out/
+*.class
+*.jar
+*.war
+
+# Maven
+.mvn/
+mvnw
+mvnw.cmd
+
+# Gradle
+.gradle/
+gradle/
+
+# Environment
+.env
+.env.local
+.env.*.local
+.env.production
+
+# Database
+*.db
+*.sqlite
+postgres_data/
+
+# Logs
+logs/
+*.log
+server.log
+
+# Temporary
+*.tmp
+.cache/
+temp/
+
+# Sensitive
+*.key
+*.pem
+*.p12
+credentials/
+
+# Node (if using frontend)
+node_modules/
+dist/
+*.log
+npm-debug.log*
+.npm
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+venv/
+env/
+ENV/
+.venv/
+*.pyc
+
+# Go binaries
+*.exe
+*-linux
+*-darwin
+*-windows
+mcp-go-research
+mcp-go-research-linux
