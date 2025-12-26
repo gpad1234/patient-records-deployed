@@ -1,10 +1,14 @@
 import { useEffect, useState } from 'react'
 import { useParams, useNavigate, Link } from 'react-router-dom'
+import PatientAPI from '../utils/api'
 
 export default function PatientDetail() {
   const { id } = useParams()
   const navigate = useNavigate()
   const [patient, setPatient] = useState(null)
+  const [records, setRecords] = useState([])
+  const [prescriptions, setPrescriptions] = useState([])
+  const [labs, setLabs] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
 
@@ -15,36 +19,26 @@ export default function PatientDetail() {
   const fetchPatient = async () => {
     try {
       setLoading(true)
-      // TODO: Replace with actual API call
-      // const response = await fetch(`/api/patients/${id}`)
-      // const data = await response.json()
-      // setPatient(data)
-
-      // Mock data for development
-      const mockPatients = {
-        1: {
-          id: 1,
-          name: 'John Doe',
-          dateOfBirth: '1980-05-15',
-          email: 'john.doe@example.com',
-          phone: '555-0101',
-          address: '123 Main St, City, State 12345',
-          medicalHistory: 'Hypertension, Type 2 Diabetes',
-          medications: 'Lisinopril, Metformin'
-        },
-        2: {
-          id: 2,
-          name: 'Jane Smith',
-          dateOfBirth: '1985-08-22',
-          email: 'jane.smith@example.com',
-          phone: '555-0102',
-          address: '456 Oak Ave, Town, State 67890',
-          medicalHistory: 'Asthma, Allergies',
-          medications: 'Albuterol, Cetirizine'
-        }
-      }
-
-      setPatient(mockPatients[id] || mockPatients[1])
+      
+      // Fetch patient data from API
+      const patientData = await PatientAPI.getPatient(id)
+      const recordsData = await PatientAPI.getPatientRecords(id)
+      const prescriptionsData = await PatientAPI.getPatientPrescriptions(id)
+      const labsData = await PatientAPI.getPatientLabs(id)
+      
+      setPatient({
+        id: patientData.id,
+        name: `${patientData.first_name} ${patientData.last_name}`,
+        dateOfBirth: patientData.date_of_birth,
+        email: patientData.email,
+        phone: patientData.phone,
+        address: patientData.address,
+        gender: patientData.gender
+      })
+      
+      setRecords(recordsData)
+      setPrescriptions(prescriptionsData)
+      setLabs(labsData)
     } catch (err) {
       setError(err.message)
     } finally {
@@ -154,15 +148,147 @@ export default function PatientDetail() {
             </div>
             <div>
               <div style={{ fontSize: '12px', color: '#999', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: '4px' }}>
-                Medical History
+                Gender
               </div>
-              <div style={{ fontSize: '14px' }}>{patient.medicalHistory}</div>
+              <div style={{ fontSize: '14px' }}>{patient.gender}</div>
             </div>
-            <div>
-              <div style={{ fontSize: '12px', color: '#999', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: '4px' }}>
-                Current Medications
+          </div>
+        </div>
+      </div>
+
+      {/* Medical Records */}
+      {records.length > 0 && (
+        <div className="card">
+          <div className="card-header">
+            <h3 style={{ margin: '0' }}>Medical Records</h3>
+          </div>
+          <div className="card-content">
+            {records.map((record, index) => (
+              <div key={record.id} style={{ 
+                borderBottom: index < records.length - 1 ? '1px solid #eee' : 'none',
+                paddingBottom: index < records.length - 1 ? '12px' : '0',
+                marginBottom: index < records.length - 1 ? '12px' : '0'
+              }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
+                  <strong>{record.diagnosis}</strong>
+                  <span style={{ fontSize: '12px', color: '#999' }}>{record.visit_date}</span>
+                </div>
+                <div style={{ fontSize: '14px', marginBottom: '4px' }}>
+                  <strong>Treatment:</strong> {record.treatment}
+                </div>
+                {record.notes && (
+                  <div style={{ fontSize: '14px', color: '#666' }}>
+                    <strong>Notes:</strong> {record.notes}
+                  </div>
+                )}
+                <div style={{ fontSize: '12px', color: '#999', marginTop: '4px' }}>
+                  Dr. {record.doctor_name}
+                </div>
               </div>
-              <div style={{ fontSize: '14px' }}>{patient.medications}</div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Prescriptions */}
+      {prescriptions.length > 0 && (
+        <div className="card">
+          <div className="card-header">
+            <h3 style={{ margin: '0' }}>Current Prescriptions</h3>
+          </div>
+          <div className="card-content">
+            {prescriptions.map((rx, index) => (
+              <div key={rx.id} style={{ 
+                borderBottom: index < prescriptions.length - 1 ? '1px solid #eee' : 'none',
+                paddingBottom: index < prescriptions.length - 1 ? '12px' : '0',
+                marginBottom: index < prescriptions.length - 1 ? '12px' : '0'
+              }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start' }}>
+                  <div>
+                    <strong style={{ fontSize: '14px' }}>{rx.medication_name}</strong>
+                    <div style={{ fontSize: '14px', color: '#666' }}>
+                      {rx.dosage} - {rx.frequency}
+                    </div>
+                    <div style={{ fontSize: '12px', color: '#999', marginTop: '4px' }}>
+                      Started: {rx.start_date}
+                      {rx.end_date && ` | Ended: ${rx.end_date}`}
+                    </div>
+                  </div>
+                  {!rx.end_date && (
+                    <span style={{ 
+                      padding: '2px 8px', 
+                      backgroundColor: '#e8f5e9', 
+                      color: '#2e7d32',
+                      borderRadius: '12px',
+                      fontSize: '12px'
+                    }}>
+                      Active
+                    </span>
+                  )}
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Lab Results */}
+      {labs.length > 0 && (
+        <div className="card">
+          <div className="card-header">
+            <h3 style={{ margin: '0' }}>Lab Results</h3>
+          </div>
+          <div className="card-content">
+            {labs.map((lab, index) => (
+              <div key={lab.id} style={{ 
+                borderBottom: index < labs.length - 1 ? '1px solid #eee' : 'none',
+                paddingBottom: index < labs.length - 1 ? '12px' : '0',
+                marginBottom: index < labs.length - 1 ? '12px' : '0'
+              }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start' }}>
+                  <div>
+                    <strong style={{ fontSize: '14px' }}>{lab.test_name}</strong>
+                    <div style={{ fontSize: '14px', marginTop: '4px' }}>
+                      <span style={{ color: '#666' }}>Result: </span>
+                      <strong>{lab.result_value}</strong>
+                      {lab.unit && ` ${lab.unit}`}
+                    </div>
+                    {lab.reference_range && (
+                      <div style={{ fontSize: '12px', color: '#999' }}>
+                        Reference: {lab.reference_range}
+                      </div>
+                    )}
+                    <div style={{ fontSize: '12px', color: '#999', marginTop: '4px' }}>
+                      {lab.test_date}
+                    </div>
+                  </div>
+                  <span style={{ 
+                    padding: '2px 8px', 
+                    backgroundColor: lab.status === 'Normal' ? '#e8f5e9' : '#ffebee',
+                    color: lab.status === 'Normal' ? '#2e7d32' : '#c62828',
+                    borderRadius: '12px',
+                    fontSize: '12px'
+                  }}>
+                    {lab.status}
+                  </span>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Medical Information */}
+      <div className="card">
+        <div className="card-header">
+          <h3 style={{ margin: '0' }}>Notes</h3>
+        </div>
+        <div className="card-content">
+          <div style={{ display: 'grid', gap: '12px' }}>
+            <div>
+              <div style={{ fontSize: '14px', color: '#666' }}>
+                No additional notes available.
+              </div>
             </div>
           </div>
         </div>

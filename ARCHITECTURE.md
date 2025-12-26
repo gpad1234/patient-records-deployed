@@ -5,7 +5,8 @@
 This is a **multi-tier, polyglot architecture** using:
 - **Nginx** as the reverse proxy & static file server
 - **Node.js** services (Express.js) for the API and Node-based MCP research server
-- **Python** services (FastAPI) for ML/data science and Python-based MCP research server  
+- **Python** services (FastAPI) for ML/data science and Python-based MCP research server
+- **Java** service (Socket Server) for high-performance TCP-based data processing with Virtual Threads
 - **Go** service (Gin framework) for high-performance concurrent research server
 - **React.js** frontend compiled to static assets
 
@@ -50,40 +51,42 @@ This is a **multi-tier, polyglot architecture** using:
                                                  │  to ports)     │
                                                  └────────────────┘
                                                          │
-                     ┌───────────────────────────────────┼────────────────────┐
-                     │                                   │                    │
-                     ▼                                   ▼                    ▼
-        ┌──────────────────────┐      ┌──────────────────────┐  ┌──────────────────────┐
-        │ MCP Node.js Server   │      │  MCP Python Server   │  │  MCP Go Server       │
-        │     (Port 3007)      │      │    (Port 3008)       │  │   (Port 3009)        │
-        │                      │      │                      │  │                      │
-        │ Framework: Express   │      │ Framework: FastAPI   │  │ Framework: Gin       │
-        │ Language Runtime: JS │      │ Language Runtime: Py │  │ Language Runtime: Go │
-        │                      │      │                      │  │                      │
-        │ Research Tools:      │      │ Research Tools:      │  │ Research Tools:      │
-        │ • search_pubmed      │      │ • search_google_sch. │  │ • search_crossref    │
-        │ • search_arxiv       │      │ • search_scidirect   │  │ • search_doaj        │
-        │ • search_crossref    │      │ • extract_pdf        │  │ • parallel_search    │
-        │                      │      │                      │  │                      │
-        │ Features:            │      │ Features:            │  │ Features:            │
-        │ • NodeCache (10min)  │      │ • Async/await        │  │ • Goroutines for     │
-        │ • Concurrency limit  │      │ • 3sec timeout       │  │   parallel requests  │
-        │ • Fallback data      │      │ • Fallback data      │  │ • In-memory cache    │
-        │ • CORS enabled       │      │ • CORS enabled       │  │ • Fallback data      │
-        │ • Health check /     │      │ • Health check /     │  │ • CORS enabled       │
-        │   health endpoint    │      │   health endpoint    │  │ • Health check /     │
-        │                      │      │                      │  │   health endpoint    │
-        └──────────────────────┘      └──────────────────────┘  └──────────────────────┘
-              │                              │                         │
-              │ HTTP calls                   │ HTTP calls              │ HTTP calls
-              │ JSON request/response        │ JSON request/response   │ JSON request/response
-              ▼                              ▼                        ▼
-        ┌──────────────┐              ┌──────────────┐          ┌──────────────┐
-        │ PubMed API   │              │ Google       │          │ CrossRef API │
-        │ arXiv API    │              │ Scholar      │          │ DOAJ API     │
-        │ CrossRef API │              │ ScienceDirect│          │              │
-        │              │              │ PDF sources  │          │              │
-        └──────────────┘              └──────────────┘          └──────────────┘
+                     ┌───────────────────┬───────────────┼─────────────────┬──────────────┐
+                     │                   │               │                 │              │
+                     ▼                   ▼               ▼                 ▼              ▼
+        ┌──────────────────────┐ ┌──────────────────────┐ ┌──────────────────────┐ ┌──────────────────────┐
+        ┌──────────────────────┐ ┌──────────────────────┐ ┌──────────────────────┐ ┌──────────────────────┐
+        │  Java Socket Server  │ │ MCP Node.js Server   │ │  MCP Python Server   │ │  MCP Go Server       │
+        │     (Port 9999)      │ │     (Port 3007)      │ │    (Port 3008)       │ │   (Port 3009)        │
+        │                      │ │                      │ │                      │ │                      │
+        │ Framework: Native    │ │ Framework: Express   │ │ Framework: FastAPI   │ │ Framework: Gin       │
+        │ Language Runtime: JVM│ │ Language Runtime: JS │ │ Language Runtime: Py │ │ Language Runtime: Go │
+        │ (Java 25 + Loom)     │ │                      │ │                      │ │                      │
+        │                      │ │                      │ │                      │ │                      │
+        │ Protocol: TCP Socket │ │ Research Tools:      │ │ Research Tools:      │ │ Research Tools:      │
+        │ • Virtual Threads    │ │ • search_pubmed      │ │ • search_google_sch. │ │ • search_crossref    │
+        │ • High-concurrency   │ │ • search_arxiv       │ │ • search_scidirect   │ │ • search_doaj        │
+        │ • Data processing    │ │ • search_crossref    │ │ • extract_pdf        │ │ • parallel_search    │
+        │                      │ │                      │ │                      │ │                      │
+        │ Features:            │ │ Features:            │ │ Features:            │ │ Features:            │
+        │ • Project Loom       │ │ • NodeCache (10min)  │ │ • Async/await        │ │ • Goroutines for     │
+        │ • Non-blocking I/O   │ │ • Concurrency limit  │ │ • 3sec timeout       │ │   parallel requests  │
+        │ • Connection pooling │ │ • Fallback data      │ │ • Fallback data      │ │ • In-memory cache    │
+        │                      │ │ • CORS enabled       │ │ • CORS enabled       │ │ • Fallback data      │
+        │                      │ │ • Health check /     │ │ • Health check /     │ │ • CORS enabled       │
+        │                      │ │   health endpoint    │ │   health endpoint    │ │ • Health check /     │
+        │                      │ │                      │ │                      │ │   health endpoint    │
+        └──────────────────────┘ └──────────────────────┘ └──────────────────────┘ └──────────────────────┘
+              │                            │                         │                       │
+              │ TCP Socket                 │ HTTP calls              │ HTTP calls            │ HTTP calls
+              │ Binary protocol            │ JSON request/response   │ JSON request/response │ JSON request/response
+              ▼                            ▼                         ▼                       ▼
+        ┌──────────────┐            ┌──────────────┐          ┌──────────────┐      ┌──────────────┐
+        │ Node.js API  │            │ PubMed API   │          │ Google       │      │ CrossRef API │
+        │ (Port 3000)  │            │ arXiv API    │          │ Scholar      │      │ DOAJ API     │
+        │ Gateway      │            │ CrossRef API │          │ ScienceDirect│      │              │
+        │              │            │              │          │ PDF sources  │      │              │
+        └──────────────┘            └──────────────┘          └──────────────┘      └──────────────┘
 ```
 
 ---
@@ -94,13 +97,14 @@ This is a **multi-tier, polyglot architecture** using:
 |---------|------|-----------|----------|------|---------|
 | **Nginx** | Reverse Proxy | Native | C | **80** | Public entry point, routing, static files, compression |
 | **Node.js API** | Web Service | Express.js | JavaScript | **3001** | Patient database API, EMR backend |
+| **Java Socket** | TCP Service | Native | Java 25 | **9999** | High-performance data processing with Virtual Threads |
 | **Node.js MCP** | Research API | Express.js | JavaScript | **3007** | PubMed/arXiv/CrossRef search service |
 | **Python MCP** | Research API | FastAPI | Python | **3008** | Google Scholar/ScienceDirect search service |
 | **Go MCP** | Research API | Gin | Go | **3009** | CrossRef/DOAJ search service (high-performance) |
 | **React.js** | Frontend | React | TypeScript/JSX | - | Compiled to static assets, served by Nginx |
 | ~~**node-service**~~ | ~~Legacy~~ | ~~Express~~ | ~~JavaScript~~ | ~~**3000**~~ | ~~Legacy WebScraper MCP (DEPRECATED)~~ |
 
-**Total: 5 active web service/server types** (1 deprecated)
+**Total: 6 active web service/server types** (1 deprecated)
 
 ---
 
@@ -206,6 +210,10 @@ Production Server: 165.232.54.109
 ├── node-api/                        (Node.js API - Port 3001)
 │   ├── src/server.js
 │   └── diabetes.db
+├── java-service/                    (Java Socket Server - Port 9999)
+│   ├── target/classes/
+│   ├── pom.xml
+│   └── java.log
 └── node-service/                    (Legacy Node service - Port 3000)
 
 /opt/ai-research/services/
@@ -231,6 +239,7 @@ Production Server: 165.232.54.109
 ### 1. **Polyglot Approach**
 - **Node.js**: Fast async I/O, easy prototyping, JavaScript ecosystem
 - **Python**: Data science libraries, ML-friendly, quick iteration
+- **Java**: Enterprise-grade, Virtual Threads (Project Loom) for massive concurrency, JVM performance
 - **Go**: High-performance concurrency, compiled binary, goroutines for parallel work
 
 ### 2. **Nginx as Reverse Proxy**
@@ -260,14 +269,15 @@ Production Server: 165.232.54.109
 
 ## Why Multiple Web Server Types?
 
-| Requirement | Node.js | Python | Go | Nginx |
-|-------------|---------|--------|----|----|
-| Easy async I/O | ✅ | ✅ | ✅ | N/A |
-| ML/Data Science libs | ❌ | ✅ | ❌ | N/A |
-| Parallel requests (goroutines) | ❌ | ❌ | ✅ | N/A |
-| High throughput static files | ❌ | ❌ | ❌ | ✅ |
-| Reverse proxy | ❌ | ❌ | ❌ | ✅ |
-| Gzip compression | ✅ | ✅ | ✅ | ✅ |
+| Requirement | Node.js | Python | Java | Go | Nginx |
+|-------------|---------|--------|------|----|-------|
+| Easy async I/O | ✅ | ✅ | ✅ | ✅ | N/A |
+| ML/Data Science libs | ❌ | ✅ | ❌ | ❌ | N/A |
+| Virtual Threads (massive concurrency) | ❌ | ❌ | ✅ | ❌ | N/A |
+| Parallel requests (goroutines) | ❌ | ❌ | ❌ | ✅ | N/A |
+| High throughput static files | ❌ | ❌ | ❌ | ❌ | ✅ |
+| Reverse proxy | ❌ | ❌ | ❌ | ❌ | ✅ |
+| Gzip compression | ✅ | ✅ | ✅ | ✅ | ✅ |
 
 **Result**: Each tool is purpose-built for its domain, creating optimal performance across the platform.
 
@@ -278,6 +288,7 @@ Production Server: 165.232.54.109
 ### Response Times (Production)
 - **Nginx static serve**: ~2-5ms
 - **Node.js API (patient data)**: ~10-50ms
+- **Java Socket (data processing)**: ~1-10ms (TCP socket, very low latency)
 - **Node.js MCP (PubMed search)**: ~200-400ms (external API dependent)
 - **Python MCP (Scholar search)**: ~3-8s (includes timeout/fallback)
 - **Go MCP (CrossRef search)**: ~300-500ms (external API dependent)
@@ -285,6 +296,7 @@ Production Server: 165.232.54.109
 ### Resource Usage (Typical)
 - **Nginx**: ~5-10 MB
 - **Node.js (API)**: ~40-50 MB
+- **Java (Socket)**: ~150-200 MB (JVM overhead, but handles high throughput)
 - **Node.js (MCP)**: ~49 MB
 - **Python (MCP)**: ~100 MB
 - **Go (MCP)**: ~13 MB (compiled binary, very efficient)
@@ -292,6 +304,7 @@ Production Server: 165.232.54.109
 ### Concurrency Model
 - **Nginx**: Event-driven (can handle thousands of concurrent connections)
 - **Node.js**: Single-threaded event loop with async/await
+- **Java**: Virtual Threads (Project Loom) - millions of lightweight threads
 - **Python**: Single-threaded with async/await (FastAPI)
 - **Go**: Native goroutines (thousands can run concurrently)
 
@@ -305,13 +318,16 @@ OSI Layer 7 (Application):
 │   ├── React SPA (GET /*, /static/*, /api/*)
 │   ├── MCP Dashboards (POST to :3007, :3008, :3009)
 │   └── Patient API (GET /api/*)
+├── TCP Socket Protocol
+│   └── Java Socket Server (Binary protocol on :9999)
 
 OSI Layer 4 (Transport):
 ├── TCP Port 80   → Nginx
 ├── TCP Port 3001 → Node.js API
 ├── TCP Port 3007 → Node.js MCP
 ├── TCP Port 3008 → Python MCP
-└── TCP Port 3009 → Go MCP
+├── TCP Port 3009 → Go MCP
+└── TCP Port 9999 → Java Socket Server
 
 OSI Layer 3 (Network):
 ├── Public IP: 165.232.54.109
@@ -368,6 +384,7 @@ curl http://165.232.54.109:3009/health
 |-----------|-----------|---------|--------|
 | Reverse Proxy | Nginx | 1.18+ | ✅ Production |
 | API Server | Node.js + Express | 16+/4.18+ | ✅ Production |
+| Data Processing | Java (Virtual Threads) | 25+ | ✅ Production |
 | Frontend | React.js | 18+ | ✅ Production |
 | Research (Fast) | Node.js + Express | 16+/4.18+ | ✅ Production |
 | Research (ML) | Python + FastAPI | 3.9+/0.95+ | ✅ Production |

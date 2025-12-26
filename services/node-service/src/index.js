@@ -85,6 +85,72 @@ app.get('/services/health', async (req, res) => {
     res.json(serviceHealth);
 });
 
+// Patient endpoints - proxy to Python service
+app.get('/patients', async (req, res) => {
+    try {
+        const response = await axios.get(`${process.env.PYTHON_SERVICE_URL}/patients`);
+        res.json(response.data);
+    } catch (error) {
+        logger.error(`Error fetching patients: ${error.message}`);
+        res.status(error.response?.status || 500).json({
+            error: 'Failed to fetch patients',
+            details: error.message
+        });
+    }
+});
+
+app.get('/patients/:id', async (req, res) => {
+    try {
+        const response = await axios.get(`${process.env.PYTHON_SERVICE_URL}/patients/${req.params.id}`);
+        res.json(response.data);
+    } catch (error) {
+        logger.error(`Error fetching patient: ${error.message}`);
+        res.status(error.response?.status || 500).json({
+            error: 'Failed to fetch patient',
+            details: error.message
+        });
+    }
+});
+
+app.get('/patients/:id/records', async (req, res) => {
+    try {
+        const response = await axios.get(`${process.env.PYTHON_SERVICE_URL}/patients/${req.params.id}/records`);
+        res.json(response.data);
+    } catch (error) {
+        logger.error(`Error fetching patient records: ${error.message}`);
+        res.status(error.response?.status || 500).json({
+            error: 'Failed to fetch patient records',
+            details: error.message
+        });
+    }
+});
+
+app.get('/patients/:id/prescriptions', async (req, res) => {
+    try {
+        const response = await axios.get(`${process.env.PYTHON_SERVICE_URL}/patients/${req.params.id}/prescriptions`);
+        res.json(response.data);
+    } catch (error) {
+        logger.error(`Error fetching prescriptions: ${error.message}`);
+        res.status(error.response?.status || 500).json({
+            error: 'Failed to fetch prescriptions',
+            details: error.message
+        });
+    }
+});
+
+app.get('/patients/:id/labs', async (req, res) => {
+    try {
+        const response = await axios.get(`${process.env.PYTHON_SERVICE_URL}/patients/${req.params.id}/labs`);
+        res.json(response.data);
+    } catch (error) {
+        logger.error(`Error fetching lab results: ${error.message}`);
+        res.status(error.response?.status || 500).json({
+            error: 'Failed to fetch lab results',
+            details: error.message
+        });
+    }
+});
+
 // Error handling middleware
 app.use((err, req, res, next) => {
     logger.error(`[${req.id}] Error: ${err.message}`);

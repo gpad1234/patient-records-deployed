@@ -34,5 +34,5 @@ if [ $? -ne 0 ]; then
 fi
 
 echo "✅ Build successful"
-echo "🚀 Starting service on port 8080..."
-mvn spring-boot:run
+echo "🚀 Starting Socket Server on port 9999..."
+java -cp target/patient-records-java-service-1.0.0.jar:target/lib/* com.healthcare.java.patient.SocketServer

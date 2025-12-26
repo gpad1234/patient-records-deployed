@@ -31,10 +31,10 @@ export default function PatientList() {
         const data = await PatientAPI.getAllPatients()
         const formattedPatients = data.map(p => ({
           id: p.id,
-          name: `${p.firstName} ${p.lastName}`,
-          age: calculateAge(p.dateOfBirth),
+          name: `${p.first_name} ${p.last_name}`,
+          age: calculateAge(p.date_of_birth),
           status: p.status || 'Active',
-          lastVisit: p.updatedAt?.split('T')[0] || new Date().toISOString().split('T')[0],
+          lastVisit: p.updated_at?.split('T')[0] || new Date().toISOString().split('T')[0],
           unit: p.diabetesType || 'General',
           physician: 'Dr. Smith'
         }))
