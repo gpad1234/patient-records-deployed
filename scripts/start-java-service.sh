@@ -1,4 +1,4 @@
-#!/bin/zsh
+#!/bin/bash
 # Start Java MCP Service
 # Usage: ./scripts/start-java-service.sh
 

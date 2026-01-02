@@ -271,7 +271,8 @@ public class PatientServiceTest {
         Patient patient = service.create(Patient.builder()
                 .name("Test").email("test@test.com").phone("555-0000").birthDate(LocalDate.of(1990, 5, 15)).build());
         int age = patient.getAge();
-        assertTrue(age >= 30 && age <= 35);
+        // In 2026, someone born in 1990 should be 35 or 36 depending on month
+        assertTrue(age >= 35 && age <= 36);
     }
 
     @Test

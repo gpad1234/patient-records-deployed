@@ -1,4 +1,4 @@
-#!/bin/zsh
+#!/bin/bash
 # Stop PostgreSQL Service
 # Usage: ./scripts/stop-postgres.sh
 

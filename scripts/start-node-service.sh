@@ -1,4 +1,4 @@
-#!/bin/zsh
+#!/bin/bash
 # Start Node.js API Gateway Service
 # Usage: ./scripts/start-node-service.sh
 

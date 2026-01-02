@@ -1,4 +1,4 @@
-#!/bin/zsh
+#!/bin/bash
 # Setup All Services
 # Usage: ./scripts/setup-all.sh
 

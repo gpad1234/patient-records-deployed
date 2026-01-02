@@ -1,4 +1,4 @@
-#!/bin/zsh
+#!/bin/bash
 # Start PostgreSQL Service
 # Usage: ./scripts/start-postgres.sh
 

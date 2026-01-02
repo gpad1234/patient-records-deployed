@@ -1,4 +1,4 @@
-#!/bin/zsh
+#!/bin/bash
 # Start Python MCP Service
 # Usage: ./scripts/start-python-service.sh
 

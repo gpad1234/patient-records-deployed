@@ -1,4 +1,4 @@
-#!/bin/zsh
+#!/bin/bash
 # Initialize PostgreSQL Database
 # Usage: ./scripts/init-database.sh
 

@@ -1,4 +1,4 @@
-#!/bin/zsh
+#!/bin/bash
 # Kill Services by Port
 # Usage: ./scripts/kill-port.sh [port]
 

@@ -1,4 +1,4 @@
-#!/bin/zsh
+#!/bin/bash
 # Test All Services Health
 # Usage: ./scripts/test-services.sh
 
