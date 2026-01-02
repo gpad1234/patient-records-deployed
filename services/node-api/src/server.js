@@ -2,9 +2,12 @@ const express = require('express');
 const sqlite3 = require('sqlite3').verbose();
 const cors = require('cors');
 const path = require('path');
+const fs = require('fs');
 require('dotenv').config();
 
 const DataLoader = require('./dataLoader');
+const initAuthRoutes = require('./routes/auth');
+const initAppointmentRoutes = require('./routes/appointments');
 
 const app = express();
 const PORT = process.env.PORT || 3001;
@@ -12,7 +15,12 @@ const DB_PATH = process.env.DATABASE_URL || path.join(__dirname, '../data/diabet
 
 // Middleware
 app.use(cors({
-  origin: process.env.API_CORS || 'http://localhost:3000',
+  origin: [
+    'http://localhost:3000',
+    'http://localhost:3002',
+    'http://127.0.0.1:3002',
+    'http://127.0.0.1:3000'
+  ],
   credentials: true,
 }));
 app.use(express.json());
@@ -24,8 +32,28 @@ const db = new sqlite3.Database(DB_PATH, (err) => {
   } else {
     console.log('✓ Connected to SQLite database');
     initializeDatabase();
+    loadAuthSchema();
   }
 });
+
+function loadAuthSchema() {
+  // Load and execute auth schema
+  const authSchemaPath = path.join(__dirname, '../../../data/auth_and_appointments.sql');
+  
+  if (fs.existsSync(authSchemaPath)) {
+    const schema = fs.readFileSync(authSchemaPath, 'utf8');
+    
+    db.exec(schema, (err) => {
+      if (err) {
+        console.error('Error loading auth schema:', err);
+      } else {
+        console.log('✓ Authentication and appointments schema loaded');
+      }
+    });
+  } else {
+    console.warn('⚠ Auth schema file not found at:', authSchemaPath);
+  }
+}
 
 function initializeDatabase() {
   db.serialize(() => {
@@ -208,6 +236,10 @@ function initializeDatabase() {
     console.log('✓ Healthcare database tables initialized');
   });
 }
+
+// Initialize routes
+app.use('/api/auth', initAuthRoutes(db));
+app.use('/api/appointments', initAppointmentRoutes(db));
 
 // Get all patients with record counts
 app.get('/api/patients', (req, res) => {
