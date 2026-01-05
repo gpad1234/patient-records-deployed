@@ -43,4 +43,4 @@ fi
 # Start service
 echo "✅ Dependencies installed"
 echo "🚀 Starting service on port 5000..."
-python src/app.py
+python3 src/app.py

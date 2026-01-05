@@ -44,10 +44,11 @@ function loadAuthSchema() {
     const schema = fs.readFileSync(authSchemaPath, 'utf8');
     
     db.exec(schema, (err) => {
-      if (err) {
+      if (err && err.code !== 'SQLITE_CONSTRAINT') {
+        // Ignore constraint errors (data already exists)
         console.error('Error loading auth schema:', err);
       } else {
-        console.log('✓ Authentication and appointments schema loaded');
+        console.log('✓ Authentication and appointments schema loaded (or already exists)');
       }
     });
   } else {

@@ -11,6 +11,7 @@ import Settings from './pages/Settings'
 import Login from './pages/Login'
 import Register from './pages/Register'
 import Appointments from './pages/Appointments'
+import DicomViewer from './pages/DicomViewerNew'
 
 // Protected Route Component
 function ProtectedRoute({ children }) {
@@ -44,6 +45,7 @@ function App() {
           <Route path="/patients/:id" element={<PatientDetail />} />
           <Route path="/patients/new" element={<AddPatient />} />
           <Route path="/appointments" element={<Appointments />} />
+          <Route path="/imaging" element={<DicomViewer />} />
           <Route path="/research" element={<Research />} />
           <Route path="/data-loader" element={<DataLoader />} />
           <Route path="/settings" element={<Settings />} />

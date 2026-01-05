@@ -1,10 +1,10 @@
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000'
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001'
 
 class PatientAPI {
   // Check API health
   static async checkHealth() {
     try {
-      const response = await fetch(`${API_BASE_URL}/health`)
+      const response = await fetch(`${API_BASE_URL}/api/health`)
       return response.ok
     } catch (error) {
       return false

@@ -72,6 +72,14 @@ export default function Sidebar({ isOpen, onClose }) {
           📅 Appointments
         </Link>
 
+        <Link
+          to="/imaging"
+          className={`nav-link ${isActive('/imaging') ? 'active' : ''}`}
+          onClick={onClose}
+        >
+          🏥 Medical Imaging
+        </Link>
+
         <div className="nav-section-title" style={{ marginTop: '20px' }}>Research</div>
 
         <Link
